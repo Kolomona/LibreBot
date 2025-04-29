@@ -1,5 +1,6 @@
 .env
 *.sqlite
+karmadb.sqlite
 
 # Node.js dependencies
 node_modules/

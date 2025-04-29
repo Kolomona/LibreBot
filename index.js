@@ -9,8 +9,8 @@ const bot = new TelegramBot(token, { polling: true });
 
 bot.on('message', async (msg) => {
     let karmaType = "none"
-    
-    if(!msg.text){
+
+    if (!msg.text) {
         return
     }
     const message = msg.text.toString();
@@ -44,7 +44,8 @@ bot.on('message', async (msg) => {
             karmaName = message;
         }
 
-        karmaName = karmaName.replace("++", "").replace("@", "").replace("--", "").replace("—", "");
+        //karmaName = karmaName.replace("++", "").replace("@", "").replace("--", "").replace("—", "");
+        karmaName = (karmaName ?? message).replace("++", "").replace("@", "").replace("--", "").replace("—", "");
 
         const karma = await processKarma(karmaName, karmaType);
 
@@ -84,9 +85,17 @@ async function processKarma(name, karmaType) {
         });
     });
 
-    plusplus = row.plusplus;
-    minusminus = row.minusminus;
-    karmaSum = plusplus - minusminus;
+
+
+
+    if (row) {
+        plusplus = row.plusplus;
+        minusminus = row.minusminus;
+        karmaSum = plusplus - minusminus;
+    } else {
+        console.error('row is undefined');
+        // handle the error
+    }
 
     return karmaSum;
 }
