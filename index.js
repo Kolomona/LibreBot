@@ -9,6 +9,10 @@ const bot = new TelegramBot(token, { polling: true });
 
 bot.on('message', async (msg) => {
     let karmaType = "none"
+    
+    if(!msg.text){
+        return
+    }
     const message = msg.text.toString();
     console.log(message);
 
