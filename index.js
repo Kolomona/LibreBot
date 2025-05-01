@@ -117,6 +117,7 @@ async function processKarma(msg) {
  * @returns {Promise<Object>} an object with the karmaName, plusplus, minusminus, and the sum of the two
  */
 async function getKarma(karmaName) {
+
     const row = await new Promise((resolve, reject) => {
         db.get('SELECT plusplus, minusminus FROM karma WHERE name = ?', [karmaName], (err, row) => {
             if (err) {
@@ -167,13 +168,23 @@ function processHelp(msg) {
 
 
 async function processKarmaStats(msg) {
-
-    const karmaName = msg.text.toString().split(" ")[1];
+    let reply = "";
+    let karmaName = msg.text.toString().split(" ")[1];
+    karmaName = karmaName.replace("@", "");
+    
     const karma = await getKarma(karmaName);
+    console.log("karma is!!: ", karma);
+    
+    if (!karma) {
+        console.error("Karma is undefined");
+        bot.sendMessage(msg.chat.id, karmaName + " has not received karma yet.");
+        return;
+    }
+
     const plusplus = karma.plusplus;
     const minusminus = karma.minusminus;
 
-    const reply =
+    reply =
         `${karmaName} has received karma ${plusplus + minusminus} times.
 ${plusplus} positive karma and ${minusminus} negative karma.
 For a total karma of ${plusplus - minusminus}.`;
