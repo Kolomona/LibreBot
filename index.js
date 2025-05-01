@@ -8,9 +8,8 @@ const bot = new TelegramBot(token, { polling: true });
 
 
 bot.on('message', async (msg) => {
-    if (!msg.text) {
-        return
-    }
+    if (!msg.text) return;
+    
     console.log("checking command", msg.text.toString());
 
     const command = checkCommand(msg);
@@ -38,24 +37,12 @@ bot.on('message', async (msg) => {
         default:
             return
     }
-
     return;
-
-
-
-
-
-
 });
 
 
 
 function checkCommand(msg) {
-    // Check to see if there's a valid command in the message. If not bail quickly
-
-    // console.log("checkCommand - message:\n", msg);
-
-
     const message = msg.text.toString();
     const words = message.split(" ");
 
@@ -73,17 +60,11 @@ function checkCommand(msg) {
     // Check for help
     if (words[0].toLowerCase() === "!help") {
         return "help";
-
     }
 
     // Check for Hi command
     if (msg.text.toString().toLowerCase().indexOf("hi") === 0) {
         return "hi";
-    }
-
-    // Check for KarmaStats
-    if (message.toLowerCase().startsWith("!karmastats")) {
-        return "karmaStats";
     }
 
     return false;
@@ -95,31 +76,22 @@ async function processKarma(msg) {
     let karmaType = "";
     let karmaName = "";
 
-    // console.log("msg:", msg);
     if (messageText.includes("++")) {
         karmaType = "plusplus";
-        // console.log("plusplus ", karmaType);
     } else if (messageText.match(/--|—/)) {
         karmaType = "minusminus";
-        // console.log("minusminus ", karmaType);
     }
 
     const messageArray = messageText.split(" ");
     if (messageArray.length > 1) {
-        // get word that contains ++
         karmaName = messageArray.find(word => word.includes("++") || word.includes("--"));
     } else {
         karmaName = messageText;
     }
 
-    //karmaName = karmaName.replace("++", "").replace("@", "").replace("--", "").replace("—", "");
     karmaName = (karmaName ?? messageText).replace("++", "").replace("@", "").replace("--", "").replace("—", "");
 
     // Add karma to the database
-    let karmaSum = 0;
-    let plusplus = 0;
-    let minusminus = 0;
-
     // Insert or ignore a new record
     db.run('INSERT OR IGNORE INTO karma (name) VALUES (?)', [karmaName]);
 
@@ -130,7 +102,21 @@ async function processKarma(msg) {
         db.run('UPDATE karma SET minusminus = COALESCE(minusminus, 0) + 1 WHERE name = ?', [karmaName]);
     }
 
-    // Get the values of the plusplus field and the minusminus field
+    const karma = await getKarma(karmaName);
+   
+    // handle possesive apostophes properly
+    const reply =
+        `${karma.karmaName}${karma.karmaName.toLowerCase().endsWith("s") ? "'" : "'s"} karma is now ${karma.karmaSum}`;
+    bot.sendMessage(msg.chat.id, reply);
+    return;
+}
+
+/**
+ * Given a karmaName, returns the current state of the karma from the database
+ * @param {string} karmaName - the name of the user to get the karma for
+ * @returns {Promise<Object>} an object with the karmaName, plusplus, minusminus, and the sum of the two
+ */
+async function getKarma(karmaName) {
     const row = await new Promise((resolve, reject) => {
         db.get('SELECT plusplus, minusminus FROM karma WHERE name = ?', [karmaName], (err, row) => {
             if (err) {
@@ -141,23 +127,22 @@ async function processKarma(msg) {
         });
     });
 
-
     if (row) {
-        plusplus = row.plusplus;
-        minusminus = row.minusminus;
-        karmaSum = plusplus - minusminus;
+        console.log("Row is: ", row);
+        
+        return {
+            karmaName: karmaName,
+            plusplus: row.plusplus,
+            minusminus: row.minusminus,
+            karmaSum: row.plusplus - row.minusminus
+        }
     } else {
         console.error('row is undefined');
         // handle the error
     }
-
-
-    // handle possesive apostophes properly
-    const reply = `${karmaName}${karmaName.toLowerCase().endsWith("s") ? "'" : "'s"} karma is now ${karmaSum}`;
-    bot.sendMessage(msg.chat.id, reply);
-
-    return;
 }
+
+
 
 function processHi(msg) {
     bot.sendMessage(msg.chat.id, "Hello");
@@ -171,28 +156,27 @@ function processHelp(msg) {
 
     The commands that I know are:
 
-    [name]++ or [name]--
-    !karmaStats [name]
-    !help`;
+    [name]++    (add karma to [name])
+    [name]--    (subtract karma from [name])
+    !karma [name]    (get karma stats for [name])
+    !help    (get help)`;
     console.log("Reply is: ", reply);
-
 
     bot.sendMessage(msg.chat.id, reply);
 }
 
 
-function processKarmaStats(msg) {
-    let plusplus = 5;
-    let minusminus = 2;
-
+async function processKarmaStats(msg) {
 
     const karmaName = msg.text.toString().split(" ")[1];
-    console.log(msg.text.toString().split(" "));
+    const karma = await getKarma(karmaName);
+    const plusplus = karma.plusplus;
+    const minusminus = karma.minusminus;
 
     const reply =
         `${karmaName} has received karma ${plusplus + minusminus} times.
 ${plusplus} positive karma and ${minusminus} negative karma.
-for a total karma of ${plusplus - minusminus}.`;
+For a total karma of ${plusplus - minusminus}.`;
 
     bot.sendMessage(msg.chat.id, reply);
 }
