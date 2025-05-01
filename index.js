@@ -55,8 +55,21 @@ bot.on('message', async (msg) => {
 
 
 
+/**
+ * Given a Telegram message, returns a string indicating which command the message is:
+ * 'karma', 'karmaStats', 'help', or 'hi'. If the message does not contain a valid
+ * command, returns false.
+ *
+ * Supported commands are:
+ * - karma: any message that contains '++', '--', or '—' in any word
+ * - karmaStats: messages that start with '!karma' followed by a name
+ * - help: messages that start with '!help'
+ * - hi: messages that start with 'hi'
+ *
+ * @param {Object} msg - a Telegram message
+ * @returns {string | false} - the command type or false if no command was found
+ */
 function checkCommand(msg) {
-
     const message = msg.text.toString();
     const words = message.split(" ");
 
@@ -104,16 +117,16 @@ async function processKarma(msg) {
     }
 
     karmaName = (karmaName ?? messageText).replace("++", "").replace("@", "").replace("--", "").replace("—", "");
-
+    const karmaNameLower = karmaName.toLowerCase();
     // Add karma to the database
     // Insert or ignore a new record
-    db.run('INSERT OR IGNORE INTO karma (name) VALUES (?)', [karmaName]);
+    db.run('INSERT OR IGNORE INTO karma (name) VALUES (?)', [karmaNameLower]);
 
     // If the karmaType is "plusplus" then increment the plusplus field
     if (karmaType === 'plusplus') {
-        db.run('UPDATE karma SET plusplus = COALESCE(plusplus, 0) + 1 WHERE name = ?', [karmaName]);
+        db.run('UPDATE karma SET plusplus = COALESCE(plusplus, 0) + 1 WHERE name = ?', [karmaNameLower]);
     } else if (karmaType === 'minusminus') {
-        db.run('UPDATE karma SET minusminus = COALESCE(minusminus, 0) + 1 WHERE name = ?', [karmaName]);
+        db.run('UPDATE karma SET minusminus = COALESCE(minusminus, 0) + 1 WHERE name = ?', [karmaNameLower]);
     }
 
     const karma = await getKarma(karmaName);
@@ -131,9 +144,9 @@ async function processKarma(msg) {
  * @returns {Promise<Object>} an object with the karmaName, plusplus, minusminus, and the sum of the two
  */
 async function getKarma(karmaName) {
-
+    const karmaNameLower = karmaName.toLowerCase();
     const row = await new Promise((resolve, reject) => {
-        db.get('SELECT plusplus, minusminus FROM karma WHERE name = ?', [karmaName], (err, row) => {
+        db.get('SELECT plusplus, minusminus FROM karma WHERE name = ?', [karmaNameLower], (err, row) => {
             if (err) {
                 reject(err);
             } else {
