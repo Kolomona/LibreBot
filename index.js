@@ -118,6 +118,13 @@ async function processKarma(msg) {
 
     karmaName = (karmaName ?? messageText).replace("++", "").replace("@", "").replace("--", "").replace("—", "");
     const karmaNameLower = karmaName.toLowerCase();
+
+    if (checkSelfKarma(msg, karmaNameLower)) {
+        bot.sendMessage(msg.chat.id, "Tsk, tsk, you'll go blind if you keep doing that. 😉");
+        return;
+    }
+
+
     // Add karma to the database
     // Insert or ignore a new record
     db.run('INSERT OR IGNORE INTO karma (name) VALUES (?)', [karmaNameLower]);
@@ -191,6 +198,10 @@ function processHelp(msg) {
     console.log("Reply is: ", reply);
 
     bot.sendMessage(msg.chat.id, reply);
+}
+
+function checkSelfKarma(msg, karmaNameLower) {
+     return (msg.from.first_name.toLowerCase() === karmaNameLower)
 }
 
 
