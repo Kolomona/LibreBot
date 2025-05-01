@@ -9,7 +9,20 @@ const bot = new TelegramBot(token, { polling: true });
 
 bot.on('message', async (msg) => {
     if (!msg.text) return;
+    // If too much time has passed ignore the message
+    // Helps to prevent spamming the channel with tons of updates
+    // also useful for clearing message queue if there are breaking errors
+    const timeOut = .5; // timeout in minutes
+    const messageDate = new Date(msg.date * 1000); // convert seconds to milliseconds
+    const now = new Date();
+    const elapsedTime = now - messageDate;
+    const elapsedTimeInMinutes = elapsedTime / 60000;
+    console.log(messageDate, now, elapsedTimeInMinutes, timeOut);
     
+    if (elapsedTimeInMinutes > timeOut) {
+        return;
+    }
+
     console.log("checking command", msg.text.toString());
 
     const command = checkCommand(msg);
@@ -43,6 +56,7 @@ bot.on('message', async (msg) => {
 
 
 function checkCommand(msg) {
+
     const message = msg.text.toString();
     const words = message.split(" ");
 
@@ -103,7 +117,7 @@ async function processKarma(msg) {
     }
 
     const karma = await getKarma(karmaName);
-   
+
     // handle possesive apostophes properly
     const reply =
         `${karma.karmaName}${karma.karmaName.toLowerCase().endsWith("s") ? "'" : "'s"} karma is now ${karma.karmaSum}`;
@@ -130,7 +144,7 @@ async function getKarma(karmaName) {
 
     if (row) {
         console.log("Row is: ", row);
-        
+
         return {
             karmaName: karmaName,
             plusplus: row.plusplus,
@@ -171,10 +185,10 @@ async function processKarmaStats(msg) {
     let reply = "";
     let karmaName = msg.text.toString().split(" ")[1];
     karmaName = karmaName.replace("@", "");
-    
+
     const karma = await getKarma(karmaName);
     console.log("karma is!!: ", karma);
-    
+
     if (!karma) {
         console.error("Karma is undefined");
         bot.sendMessage(msg.chat.id, karmaName + " has not received karma yet.");
