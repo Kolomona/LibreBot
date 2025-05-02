@@ -11,7 +11,5 @@ export const selfKarmaMessages = {
       "Self-karma: because who needs external validation when you can just validate yourself... over and over and over again?",
       "You're not fooling anyone with your self-given karma... except maybe yourself, and that's just a little pathetic.",
       "Self-karma: the ultimate way to congratulate yourself on being mediocre... and then pretending it's an achievement."
-
-
     ]
   };

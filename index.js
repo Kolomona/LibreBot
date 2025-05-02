@@ -48,6 +48,10 @@ bot.on('message', async (msg) => {
             processKarmaStats(msg);
             console.log("KarmaStats");
             break;
+        case "karmaleaders":
+            processKarmaLeaders(msg);
+            console.log("KarmaLeaders");
+            break;
         default:
             return
     }
@@ -94,7 +98,11 @@ function checkCommand(msg) {
     if (msg.text.toString().toLowerCase().indexOf("hi") === 0) {
         return "hi";
     }
-
+    
+    // Check for leaderboard command
+    if (msg.text.toString().toLowerCase().indexOf("!karmaleaders") === 0) {
+        return "karmaleaders";
+    }
     return false;
 }
 
@@ -180,6 +188,23 @@ async function getKarma(karmaName) {
 }
 
 
+async function getKarmaLeaders() {
+    const rows = await new Promise((resolve, reject) => {
+        db.all('SELECT name, plusplus - minusminus AS karmaTotal FROM karma ORDER BY karmaTotal DESC', (err, rows) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(rows);
+            }
+        });
+    });
+
+    return rows.slice(0, 5).map(row => ({
+        name: row.name,
+        karmaTotal: row.karmaTotal
+    }));
+}
+
 
 function processHi(msg) {
     bot.sendMessage(msg.chat.id, "Hello");
@@ -229,6 +254,19 @@ async function processKarmaStats(msg) {
         `${karmaName} has received karma ${plusplus + minusminus} times.
 ${plusplus} positive karma and ${minusminus} negative karma.
 For a total karma of ${plusplus - minusminus}.`;
+
+    bot.sendMessage(msg.chat.id, reply);
+}
+
+
+async function processKarmaLeaders(msg){
+
+    let reply = "These are the top 5 most virtuous Telegram users: \n\n";
+
+
+    const topKarma = await getKarmaLeaders();
+
+    reply += topKarma.map((karma, index) => `${index + 1}. ${karma.name}: ${karma.karmaTotal}`).join("\n");  
 
     bot.sendMessage(msg.chat.id, reply);
 }
