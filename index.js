@@ -221,6 +221,7 @@ function processHelp(msg) {
     [name]++    (add karma to [name])
     [name]--    (subtract karma from [name])
     !karma [name]    (get karma stats for [name])
+    !karmaleaders    (get top 5 karma leaders)
     !help    (get help)`;
     console.log("Reply is: ", reply);
 
