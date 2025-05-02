@@ -201,7 +201,8 @@ function processHelp(msg) {
 }
 
 function checkSelfKarma(msg, karmaNameLower) {
-     return (msg.from.first_name.toLowerCase() === karmaNameLower)
+    const userName = msg.from.username || msg.from.first_name;
+    return userName.toLowerCase() === karmaNameLower;
 }
 
 
