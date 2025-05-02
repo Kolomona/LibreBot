@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import TelegramBot from 'node-telegram-bot-api';
 import sqlite3 from "sqlite3";
+import { selfKarmaMessages } from './selfKarmaMessages.js';
 
 const db = new sqlite3.Database('karmadb.sqlite');
 const token = process.env.T_API_TOKEN;
@@ -120,7 +121,8 @@ async function processKarma(msg) {
     const karmaNameLower = karmaName.toLowerCase();
 
     if (checkSelfKarma(msg, karmaNameLower)) {
-        bot.sendMessage(msg.chat.id, "Tsk, tsk, you'll go blind if you keep doing that. 😉");
+        const randomIndex = Math.floor(Math.random() * selfKarmaMessages.msgs.length);
+        bot.sendMessage(msg.chat.id, selfKarmaMessages.msgs[randomIndex]);
         return;
     }
 
