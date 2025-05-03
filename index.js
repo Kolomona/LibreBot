@@ -52,6 +52,14 @@ bot.on('message', async (msg) => {
             processKarmaLeaders(msg);
             console.log("KarmaLeaders");
             break;
+        case "karmaplus":
+            processKarmaPlusOrMinus(msg, "plus");
+            console.log("KarmaPlus");
+            break;
+        case "karmaminus":
+            processKarmaPlusOrMinus(msg, "minus");
+            console.log("KarmaMinus");
+            break;
         default:
             return
     }
@@ -103,6 +111,15 @@ function checkCommand(msg) {
     if (msg.text.toString().toLowerCase().indexOf("!karmaleaders") === 0) {
         return "karmaleaders";
     }
+
+    // Check for Karma Plus or Minus command
+    if (msg.text.toString().toLowerCase().indexOf("!karmaplus") === 0) {
+        return "karmaplus";
+    }
+    if (msg.text.toString().toLowerCase().indexOf("!karmaminus") === 0) {
+        return "karmaminus";
+    }
+
     return false;
 }
 
@@ -198,13 +215,34 @@ async function getKarmaLeaders() {
             }
         });
     });
-
     return rows.slice(0, 5).map(row => ({
         name: row.name,
         karmaTotal: row.karmaTotal
     }));
 }
 
+async function getKarmaPlusOrMinus(plusorMinus) {
+    let query = "";
+    if (plusorMinus === "minus"){
+        query = 'SELECT name, minusminus AS result FROM karma ORDER BY minusminus DESC'
+    }else {
+        query = 'SELECT name, plusplus AS result FROM karma ORDER BY plusplus DESC'
+    }
+
+    const rows = await new Promise((resolve, reject) => {
+        db.all(query, (err, rows) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(rows);
+            }
+        });
+    });
+    return rows.slice(0, 5).map(row => ({
+        name: row.name,
+        result: row.result
+    }));
+}
 
 function processHi(msg) {
     bot.sendMessage(msg.chat.id, "Hello");
@@ -222,6 +260,8 @@ function processHelp(msg) {
     [name]--    (subtract karma from [name])
     !karma [name]    (get karma stats for [name])
     !karmaleaders    (get top 5 karma leaders)
+    !karmaplus    (get top 5 most positive karma receivers)
+    !karmaminus    (get top 5 most negative karma receivers)
     !help    (get help)`;
     console.log("Reply is: ", reply);
 
@@ -261,13 +301,22 @@ For a total karma of ${plusplus - minusminus}.`;
 
 
 async function processKarmaLeaders(msg){
-
     let reply = "These are the top 5 most virtuous Telegram users: \n\n";
-
-
     const topKarma = await getKarmaLeaders();
-
     reply += topKarma.map((karma, index) => `${index + 1}. ${karma.name}: ${karma.karmaTotal}`).join("\n");  
-
     bot.sendMessage(msg.chat.id, reply);
+}
+
+async function processKarmaPlusOrMinus(msg, plusOrMinus){
+    if(plusOrMinus === 'plus'){
+        let reply = "These people received the most positive karma: \n\n";
+        const topKarma = await getKarmaPlusOrMinus(plusOrMinus);
+        reply += topKarma.map((karma, index) => `${index + 1}. ${karma.name}: ${karma.result}`).join("\n");  
+        bot.sendMessage(msg.chat.id, reply);
+    } else {
+        let reply = "These people received the most negative karma: \n\n";
+        const topKarma = await getKarmaPlusOrMinus(plusOrMinus);
+        reply += topKarma.map((karma, index) => `${index + 1}. ${karma.name}: ${karma.result}`).join("\n");  
+        bot.sendMessage(msg.chat.id, reply);
+    }
 }
