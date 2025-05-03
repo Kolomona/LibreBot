@@ -123,6 +123,18 @@ function checkCommand(msg) {
     return false;
 }
 
+/**
+ * Processes a karma message and updates the karma count for a specified user.
+ * 
+ * This function identifies the type of karma operation (addition or subtraction) 
+ * from the message text and updates the user's karma record in the database. 
+ * It also handles self-karma attempts by sending a humorous message to the user 
+ * instead of updating the karma. The updated karma total is then sent back to 
+ * the user in the chat.
+ * 
+ * @param {Object} msg - A Telegram message object containing the text of the message.
+ */
+
 async function processKarma(msg) {
     const messageText = msg.text.toString();
     console.log("Processing Karma message: ", msg);
@@ -205,6 +217,11 @@ async function getKarma(karmaName) {
 }
 
 
+/**
+ * Returns the top 5 karma leaders from the database.
+ * @returns {Promise<Object[]>} A promise that resolves to an array of objects with a name and karmaTotal property.
+ * The objects are sorted in descending order by karmaTotal.
+ */
 async function getKarmaLeaders() {
     const rows = await new Promise((resolve, reject) => {
         db.all('SELECT name, plusplus - minusminus AS karmaTotal FROM karma ORDER BY karmaTotal DESC', (err, rows) => {
@@ -221,6 +238,12 @@ async function getKarmaLeaders() {
     }));
 }
 
+/**
+ * Returns the top 5 users with the most positive or negative karma.
+ * @param {string} plusorMinus - if "plus" then returns the users with the most positive karma, if "minus" then returns the users with the most negative karma
+ * @returns {Promise<Object[]>} A promise that resolves to an array of objects with a name and result property.
+ * The objects are sorted in descending order by result.
+ */
 async function getKarmaPlusOrMinus(plusorMinus) {
     let query = "";
     if (plusorMinus === "minus"){
@@ -248,6 +271,11 @@ function processHi(msg) {
     bot.sendMessage(msg.chat.id, "Hello");
 }
 
+/**
+ * Process a help message by sending a help message with all the commands
+ * that the bot knows.
+ * @param {Object} msg - A Telegram message object containing the text of the message.
+ */
 function processHelp(msg) {
     console.log("Processing Help message");
 
@@ -268,12 +296,35 @@ function processHelp(msg) {
     bot.sendMessage(msg.chat.id, reply);
 }
 
+/**
+ * Checks if the given karma name corresponds to the user who sent the message.
+ *
+ * This function determines whether the karma operation is a self-karma attempt
+ * by comparing the username or first name of the message sender to the provided
+ * karma name.
+ *
+ * @param {Object} msg - A Telegram message object containing the sender's information.
+ * @param {string} karmaNameLower - The lowercase karma name to compare against the sender's name.
+ * @returns {boolean} - True if the sender is trying to give karma to themselves, otherwise false.
+ */
+
 function checkSelfKarma(msg, karmaNameLower) {
     const userName = msg.from.username || msg.from.first_name;
     return userName.toLowerCase() === karmaNameLower;
 }
 
 
+/**
+ * Process a karma stats message by sending karma stats for the user specified
+ * in the message.
+ *
+ * This function takes a Telegram message object containing the text of the message
+ * and sends a response with the karma stats of the user whose name is specified in
+ * the message. If the user does not have any karma, a message is sent indicating
+ * that they have not received any karma yet.
+ *
+ * @param {Object} msg - A Telegram message object containing the text of the message.
+ */
 async function processKarmaStats(msg) {
     let reply = "";
     let karmaName = msg.text.toString().split(" ")[1];
@@ -300,6 +351,14 @@ For a total karma of ${plusplus - minusminus}.`;
 }
 
 
+/**
+ * Process a karma leaders message by sending the top 5 most virtuous Telegram users.
+ *
+ * This function takes a Telegram message object containing the text of the message
+ * and sends a response with the top 5 users with the highest total karma.
+ *
+ * @param {Object} msg - A Telegram message object containing the text of the message.
+ */
 async function processKarmaLeaders(msg){
     let reply = "These are the top 5 most virtuous Telegram users: \n\n";
     const topKarma = await getKarmaLeaders();
@@ -307,6 +366,17 @@ async function processKarmaLeaders(msg){
     bot.sendMessage(msg.chat.id, reply);
 }
 
+/**
+ * Process a karma plus or minus message by sending the top 5 users with the most
+ * positive or negative karma.
+ *
+ * This function takes a Telegram message object containing the text of the message
+ * and sends a response with the top 5 users with the highest positive or negative
+ * karma.
+ *
+ * @param {Object} msg - A Telegram message object containing the text of the message.
+ * @param {string} plusOrMinus - if "plus" then returns the users with the most positive karma, if "minus" then returns the users with the most negative karma.
+ */
 async function processKarmaPlusOrMinus(msg, plusOrMinus){
     if(plusOrMinus === 'plus'){
         let reply = "These people received the most positive karma: \n\n";
