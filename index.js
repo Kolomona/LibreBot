@@ -191,7 +191,7 @@ async function processKarma(msg) {
     : karmaMessages.insults[Math.floor(Math.random() * karmaMessages.insults.length)];
   const oneLiner = oneLinerTemplate.replaceAll('{name}', karma.karmaName);
   const reply =
-    `${emoji} ${karma.karmaName}${karma.karmaName.toLowerCase().endsWith("s") ? "'" : "'s"} karma is now ${karma.karmaSum}. ${oneLiner}`;
+    `${emoji} ${karma.karmaName}${karma.karmaName.toLowerCase().endsWith("s") ? "'" : "'s"} karma is now ${karma.karmaSum}.\n${oneLiner}`;
     bot.sendMessage(msg.chat.id, reply);
     return;
 }
