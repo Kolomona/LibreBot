@@ -3,6 +3,9 @@ import TelegramBot from 'node-telegram-bot-api';
 import sqlite3 from "sqlite3";
 import { selfKarmaMessages } from './selfKarmaMessages.js';
 
+const positiveEmojis = ['😊', '🎉', '🌟', '⭐', '🙌', '👍', '✨', '🏆', '🎊', '👏', '💪', '🔥', '🥇', '🎖️', '❤️', '🌻', '☀️', '🚀', '🙏', '💎', '🤘'];
+const negativeEmojis = ['😞', '👎', '💩', '🔥', '😤', '📉', '😤', '🚫', '❌', '😑', '🤦', '👿', '🗑️', '💔', '🤮', '🤬'];
+
 const db = new sqlite3.Database('karmadb.sqlite');
 const token = process.env.T_API_TOKEN;
 const bot = new TelegramBot(token, { polling: true });
@@ -178,9 +181,12 @@ async function processKarma(msg) {
 
     const karma = await getKarma(karmaName);
 
-    // handle possesive apostophes properly
-    const reply =
-        `${karma.karmaName}${karma.karmaName.toLowerCase().endsWith("s") ? "'" : "'s"} karma is now ${karma.karmaSum}`;
+  // handle possesive apostophes properly
+  const emoji = karmaType === 'plusplus'
+    ? positiveEmojis[Math.floor(Math.random() * positiveEmojis.length)]
+    : negativeEmojis[Math.floor(Math.random() * negativeEmojis.length)];
+  const reply =
+    `${emoji} ${karma.karmaName}${karma.karmaName.toLowerCase().endsWith("s") ? "'" : "'s"} karma is now ${karma.karmaSum}`;
     bot.sendMessage(msg.chat.id, reply);
     return;
 }
