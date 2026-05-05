@@ -2,6 +2,7 @@ import 'dotenv/config';
 import TelegramBot from 'node-telegram-bot-api';
 import sqlite3 from "sqlite3";
 import { selfKarmaMessages } from './selfKarmaMessages.js';
+import karmaMessages from './karmaMessages.json' with { type: 'json' };
 
 const positiveEmojis = ['😊', '🎉', '🌟', '⭐', '🙌', '👍', '✨', '🏆', '🎊', '👏', '💪', '🔥', '🥇', '🎖️', '❤️', '🌻', '☀️', '🚀', '🙏', '💎', '🤘'];
 const negativeEmojis = ['😞', '👎', '💩', '🔥', '😤', '📉', '😤', '🚫', '❌', '😑', '🤦', '👿', '🗑️', '💔', '🤮', '🤬'];
@@ -185,8 +186,12 @@ async function processKarma(msg) {
   const emoji = karmaType === 'plusplus'
     ? positiveEmojis[Math.floor(Math.random() * positiveEmojis.length)]
     : negativeEmojis[Math.floor(Math.random() * negativeEmojis.length)];
+  const oneLinerTemplate = karmaType === 'plusplus'
+    ? karmaMessages.compliments[Math.floor(Math.random() * karmaMessages.compliments.length)]
+    : karmaMessages.insults[Math.floor(Math.random() * karmaMessages.insults.length)];
+  const oneLiner = oneLinerTemplate.replaceAll('{name}', karma.karmaName);
   const reply =
-    `${emoji} ${karma.karmaName}${karma.karmaName.toLowerCase().endsWith("s") ? "'" : "'s"} karma is now ${karma.karmaSum}`;
+    `${emoji} ${karma.karmaName}${karma.karmaName.toLowerCase().endsWith("s") ? "'" : "'s"} karma is now ${karma.karmaSum}. ${oneLiner}`;
     bot.sendMessage(msg.chat.id, reply);
     return;
 }
