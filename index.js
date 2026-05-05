@@ -9,7 +9,8 @@ const bot = new TelegramBot(token, { polling: true });
 
 
 bot.on('message', async (msg) => {
-    if (!msg.text) return;
+    if (!msg.text && !msg.caption) return;
+  msg.text = msg.text || msg.caption;
     // If too much time has passed ignore the message
     // Helps to prevent spamming the channel with tons of updates
     // also useful for clearing message queue if there are breaking errors
