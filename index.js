@@ -103,9 +103,9 @@ function checkCommand(msg) {
     }
 
     // Check for Hi command
-    if (msg.text.toString().toLowerCase().indexOf("hi") === 0) {
-        return "hi";
-    }
+  if (msg.text.toString().toLowerCase().split(" ")[0] === "hi") {
+    return "hi";
+  }
     
     // Check for leaderboard command
     if (msg.text.toString().toLowerCase().indexOf("!karmaleaders") === 0) {
@@ -149,7 +149,7 @@ async function processKarma(msg) {
 
     const messageArray = messageText.split(" ");
     if (messageArray.length > 1) {
-        karmaName = messageArray.find(word => word.includes("++") || word.includes("--"));
+        karmaName = messageArray.find(word => word.includes("++") || word.includes("--") || word.includes("—"));
     } else {
         karmaName = messageText;
     }
